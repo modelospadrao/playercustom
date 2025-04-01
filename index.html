@@ -17,7 +17,7 @@
     /* Evita rolagem horizontal e define margens gerais */
     html, body {
       overflow-x: hidden;
-      margin: 20px 5px 15px 5px;
+      margin: 3px 0px 15px 0px;
       padding: 0;
     }
     /* ESTILOS GERAIS */
@@ -25,9 +25,16 @@
       font-family: Cambria, Cochin, Georgia, Times, sans-serif;
       background-color: #f0f0f0;
     }
-    h2, h3 {
+    h2 {
       text-align: center;
-      margin: 1px 0;
+      margin: 2px 0;
+      font-weight: bold;
+    }
+    h3 {
+      text-align: center;
+      margin: -15px 0;
+      padding: 25px;
+      font-family: "roboto";
       font-weight: bold;
     }
     .header-container {
@@ -116,7 +123,7 @@
     }
     .time-display {
       text-align: center;
-      font-size: 35px;
+      font-size: 47px;
       font-family: "monospace";
       margin-top: -3px;
       margin-bottom: -2px;
@@ -125,7 +132,8 @@
       border: 0px solid #888;
       background-color: #eee;
       padding: 5px;
-      margin-top: 4px;
+      margin-top: -6px;
+      margin-bottom: 5px;
       width: 95%;
       text-align: left;
       font-size: 17px;
@@ -135,7 +143,7 @@
     .file-info input {
       width: 93%;
       padding: 3px;
-      margin-top: 3px;
+      margin-top: 0px;
     }
     .file-info button {
       margin-top: 3px;
@@ -240,7 +248,7 @@
         <p>Arquivo: Nenhum</p>
         <p>Tamanho: 0</p>
         <input type="text" id="rename1" placeholder="Renomear arquivo">
-        <button onclick="removeVideo(1)">✖️ Remover Vídeo</button>
+        
       </div>
       <div class="video-controls">
         <h3>Vídeo 1</h3>
@@ -253,6 +261,7 @@
           <button onclick="fastForward(1)">⏩</button>
           <button onclick="slowMotion(1)">⏱️</button>
           <button onclick="toggleFullScreen(1)">🖥️ Tela Cheia</button>
+          <button onclick="removeVideo(1)">✖️ Remover Vídeo</button>
         </div>
       </div>
     </div>
@@ -271,8 +280,7 @@
         <p>Arquivo: Nenhum</p>
         <p>Tamanho: 0</p>
         <input type="text" id="rename2" placeholder="Renomear arquivo">
-        <button onclick="removeVideo(2)">✖️ Remover Vídeo</button>
-      </div>
+        </div>
       <div class="video-controls">
         <h3>Vídeo 2</h3>
         <div class="controls-container single-row">
@@ -284,6 +292,7 @@
           <button onclick="fastForward(2)">⏩</button>
           <button onclick="slowMotion(2)">⏱️</button>
           <button onclick="toggleFullScreen(2)">🖥️ Tela Cheia</button>
+          <button onclick="removeVideo(2)">✖️ Remover Vídeo</button>
         </div>
       </div>
     </div>
@@ -302,8 +311,7 @@
         <p>Arquivo: Nenhum</p>
         <p>Tamanho: 0</p>
         <input type="text" id="rename3" placeholder="Renomear arquivo">
-        <button onclick="removeVideo(3)">✖️ Remover Vídeo</button>
-      </div>
+        </div>
       <div class="video-controls">
         <h3>Vídeo 3</h3>
         <div class="controls-container single-row">
@@ -315,13 +323,13 @@
           <button onclick="fastForward(3)">⏩</button>
           <button onclick="slowMotion(3)">⏱️</button>
           <button onclick="toggleFullScreen(3)">🖥️ Tela Cheia</button>
+          <button onclick="removeVideo(3)">✖️ Remover Vídeo</button>
         </div>
       </div>
     </div>
   </div>
   
-  <h2 style="font-size:25px; font-weight:bold; color:#000;">(Controles Geral )</h2>
-  <!-- CONTROLES GERAIS -->
+  
   <div class="section">
     <div class="general-controls">
       <!-- Botões existentes -->
