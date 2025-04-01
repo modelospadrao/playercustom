@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comparação de Vídeos – Time‑Lapse e Controles Avançados</title>
+  <style>
+    /* Variáveis para ajuste manual */
+    :root {
+      --btn-gap: 10px;             /* Espaçamento entre os botões */
+      --btn-padding: 10px;         /* Padding interno dos botões */
+      --btn-margin: 5px;           /* Margem externa dos botões */
+      --container-padding: 10px;   /* Padding do contêiner dos botões */
+      --container-border: 1px solid #333; /* Borda do contêiner */
+    }
+    
+    /* Evita rolagem horizontal e define margens gerais */
+    html, body {
+      overflow-x: hidden;
+      margin: 20px 5px 15px 5px;
+      padding: 0;
+    }
+    /* ESTILOS GERAIS */
+    body {
+      font-family: Cambria, Cochin, Georgia, Times, sans-serif;
+      background-color: #f0f0f0;
+    }
+    h2, h3 {
+      text-align: center;
+      margin: 1px 0;
+      font-weight: bold;
+    }
+    .header-container {
+      position: relative;
+    }
+    /* Popup esquerdo – mensagem fixa "Gravação iniciada" */
+    #popupLeft {
+      display: none;
+      position: fixed;
+      top: 15px;
+      left: 10px;
+      padding: 25px;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      font-size: 20px;
+      font-family: "Courier New", Courier, monospace;
+      font-style: italic;
+      border-radius: 32px;
+      z-index: 1000;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      text-align: center;
+    }
+    /* Popup direito – temporizador digital */
+    #popupRight {
+      display: none;
+      position: fixed;
+      top: 15px;
+      right: 10px;
+      padding: 25px;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      font-size: 20px;
+      font-family: "Courier New", Courier, monospace;
+      font-style: italic;
+      border-radius: 32px;
+      z-index: 1000;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+      text-align: center;
+    }
+    /* CONTAINER DOS VÍDEOS */
+    .video-container {
+      display: flex;
+      flex-wrap: nowrap;
+      justify-content: center;
+      gap: 5px;
+      margin: 8px 0;
+      width: 97%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .video-wrapper {
+      flex: 1 1 0;
+      max-width: calc((95% - 10px) / 3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    .volume-slider {
+      width: 92%;
+      margin-bottom: 12px;
+    }
+    .video-box {
+      width: 95%;
+      aspect-ratio: 16 / 9;
+      padding: 5px;
+      box-sizing: border-box;
+      border: 2px dashed #ccc;
+      background-color: #fff;
+      box-shadow: 0 0 10px 2px #333;
+      overflow: hidden;
+      position: relative;
+      margin: 0 auto;
+    }
+    .video-box video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .progress-container {
+      width: 95%;
+      margin: 5px auto 0;
+    }
+    .progress-slider {
+      width: 100%;
+    }
+    .time-display {
+      text-align: center;
+      font-size: 35px;
+      font-family: "monospace";
+      margin-top: -3px;
+      margin-bottom: -2px;
+    }
+    .file-info {
+      border: 0px solid #888;
+      background-color: #eee;
+      padding: 5px;
+      margin-top: 4px;
+      width: 95%;
+      text-align: left;
+      font-size: 17px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .file-info input {
+      width: 93%;
+      padding: 3px;
+      margin-top: 3px;
+    }
+    .file-info button {
+      margin-top: 3px;
+      padding: 4px 8px;
+      font-size: 12px;
+    }
+    /* CONTROLES INDIVIDUAIS – cada bloco fica logo abaixo do vídeo */
+    .video-controls {
+      width: 95%;
+      max-width: 640px;
+      padding: 4px;
+      border: 1px solid #333;
+      border-radius: 8px;
+      background-color: #fff;
+      margin-top: 5px;
+      text-align: center;
+    }
+    .controls-container.single-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: var(--btn-gap);
+      padding: var(--container-padding);
+    }
+    .controls-container.single-row button {
+      margin: var(--btn-margin);
+      padding: var(--btn-padding);
+    }
+    button {
+      font-size: 20px;
+      background-color: #444;
+      color: #fff;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      box-shadow: 0 10px 0 rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    button:hover {
+      transform: scale(1.02);
+      box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    /* CONTROLES GERAIS – para todos os vídeos, alinhados em duas linhas */
+    .section {
+      text-align: center;
+      border: 3px solid #333;
+      border-radius: 45px;
+      padding: 13px;
+      width: 90%;
+      margin: 10px auto;
+      background-color: #fff;
+      overflow: hidden;
+    }
+    .general-controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: var(--btn-gap);
+      padding: var(--container-padding);
+      border: var(--container-border);
+      border-radius: 31px;
+      border-color: #ffffff;
+    }
+    .general-controls button {
+      flex: 1 1 150px;
+      margin: var(--btn-margin);
+      padding: var(--btn-padding);
+    }
+    /* Canvas usado para compor os vídeos – oculto */
+    #recordCanvas {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Popups para gravação -->
+  <div id="popupLeft"></div>
+  <div id="popupRight"></div>
+  
+  <!-- CABEÇALHO -->
+  <div class="header-container">
+    <h2 style="color:#e63946;">MODELO COMPARAÇÃO DE VIDEOMONITORAMENTOS</h2>
+    <h2 style="font-size:21px; font-weight:bold; color:#000;">(Versão 1.0)</h2>
+  </div>
+  
+  <!-- CONTAINER DOS VÍDEOS -->
+  <div class="video-container">
+    <!-- Vídeo 1 -->
+    <div class="video-wrapper">
+      <input type="range" class="volume-slider" id="volume1" min="0" max="1" step="0.01" value="1">
+      <div class="video-box" id="box1" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <video id="video1"></video>
+      </div>
+      <div class="progress-container">
+        <input type="range" class="progress-slider" id="progress1" min="0" max="100" step="0.1" value="0">
+        <div class="time-display" id="timeDisplay1">00:00 / 00:00</div>
+      </div>
+      <div class="file-info" id="info1">
+        <p>Arquivo: Nenhum</p>
+        <p>Tamanho: 0</p>
+        <input type="text" id="rename1" placeholder="Renomear arquivo">
+        <button onclick="removeVideo(1)">✖️ Remover Vídeo</button>
+      </div>
+      <div class="video-controls">
+        <h3>Vídeo 1</h3>
+        <div class="controls-container single-row">
+          <button onclick="playVideo(1)">▶️</button>
+          <button onclick="pauseVideo(1)">⏸️</button>
+          <button onclick="stopVideo(1)">⬜</button>
+          <button onclick="rewind(1)">⏪</button>
+          <button onclick="normalizeVideo(1)">🔄</button>
+          <button onclick="fastForward(1)">⏩</button>
+          <button onclick="slowMotion(1)">⏱️</button>
+          <button onclick="toggleFullScreen(1)">🖥️ Tela Cheia</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Vídeo 2 -->
+    <div class="video-wrapper">
+      <input type="range" class="volume-slider" id="volume2" min="0" max="1" step="0.01" value="1">
+      <div class="video-box" id="box2" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <video id="video2"></video>
+      </div>
+      <div class="progress-container">
+        <input type="range" class="progress-slider" id="progress2" min="0" max="100" step="0.1" value="0">
+        <div class="time-display" id="timeDisplay2">00:00 / 00:00</div>
+      </div>
+      <div class="file-info" id="info2">
+        <p>Arquivo: Nenhum</p>
+        <p>Tamanho: 0</p>
+        <input type="text" id="rename2" placeholder="Renomear arquivo">
+        <button onclick="removeVideo(2)">✖️ Remover Vídeo</button>
+      </div>
+      <div class="video-controls">
+        <h3>Vídeo 2</h3>
+        <div class="controls-container single-row">
+          <button onclick="playVideo(2)">▶️</button>
+          <button onclick="pauseVideo(2)">⏸️</button>
+          <button onclick="stopVideo(2)">⬜</button>
+          <button onclick="rewind(2)">⏪</button>
+          <button onclick="normalizeVideo(2)">🔄</button>
+          <button onclick="fastForward(2)">⏩</button>
+          <button onclick="slowMotion(2)">⏱️</button>
+          <button onclick="toggleFullScreen(2)">🖥️ Tela Cheia</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Vídeo 3 -->
+    <div class="video-wrapper">
+      <input type="range" class="volume-slider" id="volume3" min="0" max="1" step="0.01" value="1">
+      <div class="video-box" id="box3" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <video id="video3"></video>
+      </div>
+      <div class="progress-container">
+        <input type="range" class="progress-slider" id="progress3" min="0" max="100" step="0.1" value="0">
+        <div class="time-display" id="timeDisplay3">00:00 / 00:00</div>
+      </div>
+      <div class="file-info" id="info3">
+        <p>Arquivo: Nenhum</p>
+        <p>Tamanho: 0</p>
+        <input type="text" id="rename3" placeholder="Renomear arquivo">
+        <button onclick="removeVideo(3)">✖️ Remover Vídeo</button>
+      </div>
+      <div class="video-controls">
+        <h3>Vídeo 3</h3>
+        <div class="controls-container single-row">
+          <button onclick="playVideo(3)">▶️</button>
+          <button onclick="pauseVideo(3)">⏸️</button>
+          <button onclick="stopVideo(3)">⬜</button>
+          <button onclick="rewind(3)">⏪</button>
+          <button onclick="normalizeVideo(3)">🔄</button>
+          <button onclick="fastForward(3)">⏩</button>
+          <button onclick="slowMotion(3)">⏱️</button>
+          <button onclick="toggleFullScreen(3)">🖥️ Tela Cheia</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <h2 style="font-size:25px; font-weight:bold; color:#000;">(Controles Geral )</h2>
+  <!-- CONTROLES GERAIS -->
+  <div class="section">
+    <div class="general-controls">
+      <!-- Botões existentes -->
+      <button id="generalMark" onclick="markPositionAll()">🅰️ Marcar</button>
+      <button id="generalJump" onclick="jumpToMarkerAll()">🅱️ Voltar</button>
+      <button id="generalResetMarker" onclick="resetMarkerAll()">🆎 Reset </button>
+      <button id="generalVolumeReset" onclick="resetVolumeAll()">🔊 Reset</button>
+      <button id="generalRewind" onclick="rewindAll()">⏪ Recuar</button>  
+      <button onclick="pauseAll()">⏸️ Pausar</button>  
+      <button onclick="playAll()">▶️ Reprod.</button>  
+      <button id="generalFastForward" onclick="fastForwardAll()">⏩ Avançar</button>
+      <button id="generalSlowMotion" onclick="slowMotionAll()">⏱️ Geral</button>
+      <button id="generalNormalize" onclick="normalizeAll()">🔄 Geral</button>
+      <button id="generalStop" onclick="stopAll()">⬜ Stop</button>
+      <button onclick="removeAllVideos()">❌ Remover </button>
+      <!-- Botão de gravação para compor as 3 telas -->
+      <button id="generalRecord" onclick="toggleRecording()">🔴 Gravar</button>
+      <p style="text-align: center; font-size:20px; font-style: italic; font-family: 'Courier New', Courier, monospace; margin-top: 19px;">
+        © 2025 Emanuel Aguiar <br>Todos os direitos reservados.
+      </p>
+    </div>
+  </div>
+  
+  <!-- Canvas oculto para compor os vídeos e capturar a gravação -->
+  <canvas id="recordCanvas" width="960" height="180"></canvas>
+  
+  <script>
+    /* --- Função para formatar tamanho de arquivo --- */
+    function formatFileSize(bytes) {
+      if (bytes >= 1073741824) {
+        return (bytes / 1073741824).toFixed(2) + " GB";
+      } else if (bytes >= 1048576) {
+        return (bytes / 1048576).toFixed(2) + " MB";
+      } else if (bytes >= 1024) {
+        return (bytes / 1024).toFixed(2) + " KB";
+      } else {
+        return bytes + " bytes";
+      }
+    }
+    
+    /* --- Função para atualizar a caixa de informações do arquivo --- */
+    function updateFileInfo(videoId, file) {
+      const infoDiv = document.getElementById("info" + videoId);
+      infoDiv.innerHTML = `
+        <p>Arquivo: ${file.name}</p>
+        <p>Tamanho: ${formatFileSize(file.size)}</p>
+        <p>Duração: <span id="duration${videoId}">00:00</span></p>
+        <input type="text" id="rename${videoId}" placeholder="Renomear arquivo" value="${file.name}">
+        <button onclick="removeVideo(${videoId})">Remover Vídeo</button>
+      `;
+      localStorage.setItem("videoInfo" + videoId, JSON.stringify({ name: file.name, size: file.size }));
+    }
+    
+    function loadFileInfo(videoId) {
+      const infoData = localStorage.getItem("videoInfo" + videoId);
+      if (infoData) {
+        const info = JSON.parse(infoData);
+        const infoDiv = document.getElementById("info" + videoId);
+        infoDiv.innerHTML = `
+          <p>Arquivo: ${info.name}</p>
+          <p>Tamanho: ${formatFileSize(info.size)}</p>
+          <p>Duração: <span id="duration${videoId}">00:00</span></p>
+          <input type="text" id="rename${videoId}" placeholder="Renomear arquivo" value="${info.name}">
+          <button onclick="removeVideo(${videoId})">Remover Vídeo</button>
+        `;
+      }
+    }
+    
+    /* --- Funções de Drag & Drop para carregar vídeo --- */
+    function allowDrop(event) {
+      event.preventDefault();
+    }
+    function drop(event) {
+      event.preventDefault();
+      const videoBox = event.target.closest('.video-box');
+      if (videoBox) {
+        const video = videoBox.querySelector('video');
+        const files = event.dataTransfer.files;
+        if (files.length > 0) {
+          const file = files[0];
+          video.src = URL.createObjectURL(file);
+          video.load();
+          const videoId = video.id.replace("video", "");
+          updateFileInfo(videoId, file);
+        }
+      }
+    }
+    
+    /* --- Funções de reprodução individual --- */
+    function playVideo(id) {
+      const video = document.getElementById('video' + id);
+      if (video.src) video.play();
+    }
+    function pauseVideo(id) {
+      const video = document.getElementById('video' + id);
+      if (video.src) video.pause();
+    }
+    function stopVideo(id) {
+      const video = document.getElementById('video' + id);
+      if (video.src) {
+        video.pause();
+        video.currentTime = 0;
+        video.playbackRate = 1;
+      }
+    }
+    
+    /* --- Fast‑Forward: aumenta playbackRate em 0.5 --- */
+    function fastForward(id) {
+      const video = document.getElementById('video' + id);
+      if (video && video.src) {
+        if(video.playbackRate < 1) video.playbackRate = 1;
+        video.playbackRate += 0.5;
+        video.play();
+      }
+    }
+    
+    /* --- Rewind: subtrai 1.5 s a cada clique --- */
+    function rewind(id) {
+      const video = document.getElementById('video' + id);
+      if (video && video.src) {
+        video.currentTime = Math.max(0, video.currentTime - 1.5);
+      }
+    }
+    
+    /* --- Câmera lenta individual --- */
+    function slowMotion(id) {
+      const video = document.getElementById('video' + id);
+      if (video && video.src) {
+        video.playbackRate = 0.5;
+        video.play();
+      }
+    }
+    
+    /* --- Normalizar individual --- */
+    function normalizeVideo(id) {
+      const video = document.getElementById('video' + id);
+      if (video && video.src) {
+        video.playbackRate = 1;
+      }
+    }
+    
+    /* --- Controles Gerais: aplica para todos os vídeos --- */
+    function fastForwardAll() {
+      for (let i = 1; i <= 3; i++) {
+        fastForward(i);
+      }
+    }
+    function rewindAll() {
+      for (let i = 1; i <= 3; i++) {
+        rewind(i);
+      }
+    }
+    function slowMotionAll() {
+      document.querySelectorAll('video').forEach(video => {
+        if (video.src) {
+          video.playbackRate = 0.5;
+          video.play();
+        }
+      });
+    }
+    function normalizeAll() {
+      for (let i = 1; i <= 3; i++) {
+        normalizeVideo(i);
+      }
+    }
+    function stopAll() {
+      for (let i = 1; i <= 3; i++) {
+        stopVideo(i);
+      }
+    }
+    
+    /* --- Controles Gerais de Marcação de Posição --- */
+    let markerTimes = {};
+    function markPositionAll() {
+      for (let i = 1; i <= 3; i++) {
+        const video = document.getElementById('video' + i);
+        if (video && video.src) {
+          markerTimes[i] = video.currentTime;
+        }
+      }
+      console.log("Posições marcadas:", markerTimes);
+    }
+    function jumpToMarkerAll() {
+      for (let i = 1; i <= 3; i++) {
+        const video = document.getElementById('video' + i);
+        if (video && video.src && markerTimes[i] !== undefined) {
+          video.currentTime = markerTimes[i];
+        }
+      }
+    }
+    function resetMarkerAll() {
+      markerTimes = {};
+      console.log("Marcação resetada");
+    }
+    
+    /* --- Atualização do slider de progresso e exibição do tempo --- */
+    function updateProgress(id) {
+      const video = document.getElementById('video' + id);
+      const progress = document.getElementById('progress' + id);
+      const timeDisplay = document.getElementById('timeDisplay' + id);
+      if (video.duration) {
+        const percent = (video.currentTime / video.duration) * 100;
+        progress.value = percent;
+        timeDisplay.textContent = formatTime(video.currentTime) + " / " + formatTime(video.duration);
+        // Atualiza a duração na caixa de info se necessário
+        const durationSpan = document.getElementById('duration' + id);
+        if (durationSpan && durationSpan.textContent === "00:00") {
+          durationSpan.textContent = formatTime(video.duration);
+        }
+      }
+    }
+    function formatTime(seconds) {
+      const min = Math.floor(seconds / 60);
+      const sec = Math.floor(seconds % 60);
+      return (min < 10 ? "0" + min : min) + ":" + (sec < 10 ? "0" + sec : sec);
+    }
+    function seekVideo(id) {
+      const video = document.getElementById('video' + id);
+      const progress = document.getElementById('progress' + id);
+      if (video.duration) {
+        video.currentTime = (progress.value / 100) * video.duration;
+      }
+    }
+    
+    /* --- Eventos para cada vídeo --- */
+    document.addEventListener('DOMContentLoaded', function () {
+      for (let i = 1; i <= 3; i++) {
+        const video = document.getElementById('video' + i);
+        video.addEventListener('timeupdate', function() {
+          updateProgress(i);
+        });
+        const progress = document.getElementById('progress' + i);
+        progress.addEventListener('input', function() {
+          seekVideo(i);
+        });
+        loadFileInfo(i);
+      }
+      // Configura os sliders de volume
+      for (let i = 1; i <= 3; i++) {
+        const slider = document.getElementById('volume' + i);
+        slider.addEventListener('input', function () {
+          const video = document.getElementById('video' + i);
+          video.volume = slider.value;
+        });
+      }
+      
+      // Inicia a composição contínua dos vídeos no canvas para gravação
+      drawComposite();
+    });
+    
+    /* --- Controles Gerais de Reprodução --- */
+    function playAll() {
+      for (let i = 1; i <= 3; i++) {
+        const video = document.getElementById('video' + i);
+        if (video.src) video.play();
+      }
+    }
+    function pauseAll() {
+      for (let i = 1; i <= 3; i++) {
+        const video = document.getElementById('video' + i);
+        if (video.src) video.pause();
+      }
+    }
+    function removeAllVideos() {
+      for (let i = 1; i <= 3; i++) {
+        removeVideo(i);
+      }
+    }
+    
+    /* --- Função para remover individualmente um vídeo --- */
+    function removeVideo(id) {
+      const video = document.getElementById('video' + id);
+      if (video) {
+        video.src = "";
+        video.load();
+      }
+      const infoDiv = document.getElementById("info" + id);
+      infoDiv.innerHTML = `
+        <p>Arquivo: Nenhum</p>
+        <p>Tamanho: 0</p>
+        <input type="text" id="rename${id}" placeholder="Renomear arquivo">
+        <button onclick="removeVideo(${id})">Remover Vídeo</button>
+      `;
+      localStorage.removeItem("videoInfo" + id);
+    }
+    
+    /* --- Variáveis e funções para o temporizador dos popups --- */
+    let recordingStartTime = null;
+    let timerInterval = null;
+    
+    function startTimer() {
+      recordingStartTime = Date.now();
+      timerInterval = setInterval(() => {
+        const elapsedMs = Date.now() - recordingStartTime;
+        const hours = Math.floor(elapsedMs / (1000 * 60 * 60));
+        const minutes = Math.floor((elapsedMs / (1000 * 60)) % 60);
+        const seconds = Math.floor((elapsedMs / 1000) % 60);
+        const timeStr =
+          (hours < 10 ? "0" + hours : hours) + ":" +
+          (minutes < 10 ? "0" + minutes : minutes) + ":" +
+          (seconds < 10 ? "0" + seconds : seconds);
+        const popupRight = document.getElementById("popupRight");
+        popupRight.textContent = timeStr;
+        popupRight.style.display = "block";
+      }, 1000);
+    }
+    
+    function stopTimer() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      document.getElementById("popupRight").style.display = "none";
+    }
+    
+    /* --- Gravação da tela composta dos 3 vídeos --- */
+    const video1 = document.getElementById('video1');
+    const video2 = document.getElementById('video2');
+    const video3 = document.getElementById('video3');
+    const compositeCanvas = document.getElementById('recordCanvas');
+    const compositeCtx = compositeCanvas.getContext('2d');
+    
+    // Variáveis para controle da gravação
+    let recording = false;
+    let mediaRecorder;
+    let recordedChunks = [];
+    
+    // Função que compõe os 3 vídeos no canvas; assume 320x180 para cada vídeo
+    function drawComposite() {
+      if(video1.readyState >= 2) {
+        compositeCtx.drawImage(video1, 0, 0, 320, 180);
+      }
+      if(video2.readyState >= 2) {
+        compositeCtx.drawImage(video2, 320, 0, 320, 180);
+      }
+      if(video3.readyState >= 2) {
+        compositeCtx.drawImage(video3, 640, 0, 320, 180);
+      }
+      requestAnimationFrame(drawComposite);
+    }
+    
+    // Função para alternar o estado de gravação
+    function toggleRecording() {
+      const recordButton = document.getElementById('generalRecord');
+      if (!recording) {
+        // Inicia a gravação
+        recordedChunks = [];
+        const stream = compositeCanvas.captureStream(30); // 30 fps
+        
+        let mimeType = '';
+        if (MediaRecorder.isTypeSupported('video/mp4')) {
+          mimeType = 'video/mp4';
+        } else {
+          mimeType = 'video/webm; codecs=vp9';
+        }
+        
+        try {
+          mediaRecorder = new MediaRecorder(stream, { mimeType });
+        } catch (e) {
+          console.error('Erro ao iniciar MediaRecorder:', e);
+          alert('Erro ao iniciar gravação');
+          return;
+        }
+        
+        mediaRecorder.ondataavailable = function(event) {
+          if (event.data.size > 0) {
+            recordedChunks.push(event.data);
+          }
+        };
+        
+        mediaRecorder.onstop = function() {
+          const blob = new Blob(recordedChunks, { type: mimeType });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.style.display = 'block';
+          a.href = url;
+          a.download = mimeType === 'video/mp4' ? 'gravacao.mp4' : 'gravacao.webm';
+          a.textContent = 'Download da gravação';
+          document.body.appendChild(a);
+          stopTimer();
+          document.getElementById("popupLeft").style.display = "none";
+        };
+        
+        mediaRecorder.start();
+        recordButton.textContent = 'Parar Gravação';
+        recording = true;
+        // Exibe o popup esquerdo com a mensagem fixa e inicia o temporizador no popup direito
+        const popupLeft = document.getElementById("popupLeft");
+        popupLeft.textContent = "Gravação iniciada";
+        popupLeft.style.display = "block";
+        startTimer();
+      } else {
+        // Para a gravação
+        mediaRecorder.stop();
+        recordButton.textContent = 'Gravar';
+        recording = false;
+      }
+    }
+    
+    /* --- Função para alternar o modo tela cheia para um vídeo individual --- */
+    function toggleFullScreen(videoId) {
+      const video = document.getElementById('video' + videoId);
+      if (!document.fullscreenElement) {
+        video.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    }
+  </script>
+</body>
+</html>
