@@ -74,6 +74,43 @@
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
       text-align: center;
     }
+    /* Popup de confirmação para salvar a gravação */
+    #popupSave {
+      display: none;
+      position: fixed;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 20px;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      font-size: 20px;
+      font-family: "Courier New", Courier, monospace;
+      border-radius: 32px;
+      z-index: 1000;
+      text-align: center;
+    }
+    /* Botões de confirmação */
+    .btn-green {
+      background-color: green;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      padding: 10px 15px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .btn-red {
+      background-color: red;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      padding: 10px 15px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 18px;
+    }
     /* CONTAINER DOS VÍDEOS */
     .video-container {
       display: flex;
@@ -96,9 +133,10 @@
     .volume-slider {
       width: 92%;
       margin-bottom: 12px;
-      }
+    }
     .video-box {
       width: 98%;
+      height: 100%;
       aspect-ratio: 16 / 9;
       padding: 5px;
       box-sizing: border-box;
@@ -112,7 +150,8 @@
     .video-box video {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
+      object-position: center; /* Garante que o vídeo fique centralizado, se houver barras */
     }
     .progress-container {
       width: 80%;
@@ -219,12 +258,27 @@
     #recordCanvas {
       display: none;
     }
+    /* Estilo para a dica (tooltip) */
+    .tooltip {
+      position: absolute;
+      background-color: yellow;
+      color: black;
+      border: 1px solid black;
+      padding: 5px;
+      font-size: 14px;
+      border-radius: 5px;
+      white-space: nowrap;
+      z-index: 999;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+    }
   </style>
 </head>
 <body>
   <!-- Popups para gravação -->
   <div id="popupLeft"></div>
   <div id="popupRight"></div>
+  <!-- Popup de confirmação para salvar a gravação -->
+  <div id="popupSave"></div>
   
   <!-- CABEÇALHO -->
   <div class="header-container">
@@ -248,20 +302,20 @@
         <p>Arquivo: Nenhum</p>
         <p>Tamanho: 0</p>
         <input type="text" id="rename1" placeholder="Renomear arquivo">
-        
       </div>
       <div class="video-controls">
         <h3>Vídeo 1</h3>
         <div class="controls-container single-row">
-          <button onclick="playVideo(1)">▶️</button>
-          <button onclick="pauseVideo(1)">⏸️</button>
-          <button onclick="stopVideo(1)">⬜</button>
-          <button onclick="rewind(1)">⏪</button>
-          <button onclick="normalizeVideo(1)">🔄</button>
-          <button onclick="fastForward(1)">⏩</button>
-          <button onclick="slowMotion(1)">⏱️</button>
-          <button onclick="toggleFullScreen(1)">🖥️ Tela Cheia</button>
-          <button onclick="removeVideo(1)">✖️ Remover Vídeo</button>
+          <button onclick="playVideo(1)" data-tooltip="Reproduzir vídeo 1">▶️</button>
+          <button onclick="pauseVideo(1)" data-tooltip="Pausar vídeo 1">⏸️</button>
+          <button onclick="stopVideo(1)" data-tooltip="Parar vídeo 1">⬜</button>
+          <button onclick="rewind(1)" data-tooltip="Recuar vídeo 1">⏪</button>
+          <button onclick="normalizeVideo(1)" data-tooltip="Normalizar velocidade de vídeo 1">🔄</button>
+          <button id="muteButton1" onclick="toggleMuteVideo(1)" data-tooltip="Alternar mudo para vídeo 1">🔊</button>
+          <button onclick="fastForward(1)" data-tooltip="Avançar vídeo 1">⏩</button>
+          <button onclick="slowMotion(1)" data-tooltip="Câmera lenta para vídeo 1">⏱️</button>
+          <button onclick="toggleFullScreen(1)" data-tooltip="Tela cheia para vídeo 1">🖥️ Tela Cheia</button>
+          <button onclick="removeVideo(1)" data-tooltip="Remover vídeo 1">✖️ Remover Vídeo</button>
         </div>
       </div>
     </div>
@@ -280,19 +334,20 @@
         <p>Arquivo: Nenhum</p>
         <p>Tamanho: 0</p>
         <input type="text" id="rename2" placeholder="Renomear arquivo">
-        </div>
+      </div>
       <div class="video-controls">
         <h3>Vídeo 2</h3>
         <div class="controls-container single-row">
-          <button onclick="playVideo(2)">▶️</button>
-          <button onclick="pauseVideo(2)">⏸️</button>
-          <button onclick="stopVideo(2)">⬜</button>
-          <button onclick="rewind(2)">⏪</button>
-          <button onclick="normalizeVideo(2)">🔄</button>
-          <button onclick="fastForward(2)">⏩</button>
-          <button onclick="slowMotion(2)">⏱️</button>
-          <button onclick="toggleFullScreen(2)">🖥️ Tela Cheia</button>
-          <button onclick="removeVideo(2)">✖️ Remover Vídeo</button>
+          <button onclick="playVideo(2)" data-tooltip="Reproduzir vídeo 2">▶️</button>
+          <button onclick="pauseVideo(2)" data-tooltip="Pausar vídeo 2">⏸️</button>
+          <button onclick="stopVideo(2)" data-tooltip="Parar vídeo 2">⬜</button>
+          <button onclick="rewind(2)" data-tooltip="Recuar vídeo 2">⏪</button>
+          <button onclick="normalizeVideo(2)" data-tooltip="Normalizar velocidade de vídeo 2">🔄</button>
+          <button id="muteButton2" onclick="toggleMuteVideo(2)" data-tooltip="Alternar mudo para vídeo 2">🔊</button>
+          <button onclick="fastForward(2)" data-tooltip="Avançar vídeo 2">⏩</button>
+          <button onclick="slowMotion(2)" data-tooltip="Câmera lenta para vídeo 2">⏱️</button>
+          <button onclick="toggleFullScreen(2)" data-tooltip="Tela cheia para vídeo 2">🖥️ Tela Cheia</button>
+          <button onclick="removeVideo(2)" data-tooltip="Remover vídeo 2">✖️ Remover Vídeo</button>
         </div>
       </div>
     </div>
@@ -311,42 +366,41 @@
         <p>Arquivo: Nenhum</p>
         <p>Tamanho: 0</p>
         <input type="text" id="rename3" placeholder="Renomear arquivo">
-        </div>
+      </div>
       <div class="video-controls">
         <h3>Vídeo 3</h3>
         <div class="controls-container single-row">
-          <button onclick="playVideo(3)">▶️</button>
-          <button onclick="pauseVideo(3)">⏸️</button>
-          <button onclick="stopVideo(3)">⬜</button>
-          <button onclick="rewind(3)">⏪</button>
-          <button onclick="normalizeVideo(3)">🔄</button>
-          <button onclick="fastForward(3)">⏩</button>
-          <button onclick="slowMotion(3)">⏱️</button>
-          <button onclick="toggleFullScreen(3)">🖥️ Tela Cheia</button>
-          <button onclick="removeVideo(3)">✖️ Remover Vídeo</button>
+          <button onclick="playVideo(3)" data-tooltip="Reproduzir vídeo 3">▶️</button>
+          <button onclick="pauseVideo(3)" data-tooltip="Pausar vídeo 3">⏸️</button>
+          <button onclick="stopVideo(3)" data-tooltip="Parar vídeo 3">⬜</button>
+          <button onclick="rewind(3)" data-tooltip="Recuar vídeo 3">⏪</button>
+          <button onclick="normalizeVideo(3)" data-tooltip="Normalizar velocidade de vídeo 3">🔄</button>
+          <button id="muteButton3" onclick="toggleMuteVideo(3)" data-tooltip="Alternar mudo para vídeo 3">🔊</button>
+          <button onclick="fastForward(3)" data-tooltip="Avançar vídeo 3">⏩</button>
+          <button onclick="slowMotion(3)" data-tooltip="Câmera lenta para vídeo 3">⏱️</button>
+          <button onclick="toggleFullScreen(3)" data-tooltip="Tela cheia para vídeo 3">🖥️ Tela Cheia</button>
+          <button onclick="removeVideo(3)" data-tooltip="Remover vídeo 3">✖️ Remover Vídeo</button>
         </div>
       </div>
     </div>
   </div>
   
-  
+  <!-- CONTROLE GERAL DOS VÍDEOS -->
   <div class="section">
     <div class="general-controls">
-      <!-- Botões existentes -->
-      <button id="generalMark" onclick="markPositionAll()">🅰️ Marcar</button>
-      <button id="generalJump" onclick="jumpToMarkerAll()">🅱️ Voltar</button>
-      <button id="generalResetMarker" onclick="resetMarkerAll()">🆎 Reset </button>
-      <button id="generalVolumeReset" onclick="resetVolumeAll()">🔊 Reset</button>
-      <button id="generalRewind" onclick="rewindAll()">⏪ Recuar</button>  
-      <button onclick="pauseAll()">⏸️ Pausar</button>  
-      <button onclick="playAll()">▶️ Reprod.</button>  
-      <button id="generalFastForward" onclick="fastForwardAll()">⏩ Avançar</button>
-      <button id="generalSlowMotion" onclick="slowMotionAll()">⏱️ Geral</button>
-      <button id="generalNormalize" onclick="normalizeAll()">🔄 Geral</button>
-      <button id="generalStop" onclick="stopAll()">⬜ Stop</button>
-      <button onclick="removeAllVideos()">❌ Remover </button>
-      <!-- Botão de gravação para compor as 3 telas -->
-      <button id="generalRecord" onclick="toggleRecording()">🔴 Gravar</button>
+      <button id="generalMark" onclick="markPositionAll()" data-tooltip="Marcar posição atual em todos os vídeos">🅰️ Marcar</button>
+      <button id="generalJump" onclick="jumpToMarkerAll()" data-tooltip="Voltar à posição marcada em todos os vídeos">🅱️ Voltar</button>
+      <button id="generalResetMarker" onclick="resetMarkerAll()" data-tooltip="Resetar marcações">🆎 Reset </button>
+      <button id="generalVolumeReset" onclick="resetVolumeAll()" data-tooltip="Resetar volume de todos os vídeos">🔊 Reset</button>
+      <button id="generalRewind" onclick="rewindAll()" data-tooltip="Recuar todos os vídeos">⏪ Recuar</button>  
+      <button onclick="pauseAll()" data-tooltip="Pausar todos os vídeos">⏸️ Pausar</button>  
+      <button onclick="playAll()" data-tooltip="Reproduzir todos os vídeos">▶️ Reprod.</button>  
+      <button id="generalFastForward" onclick="fastForwardAll()" data-tooltip="Avançar todos os vídeos">⏩ Avançar</button>
+      <button id="generalSlowMotion" onclick="slowMotionAll()" data-tooltip="Câmera lenta geral para todos os vídeos">⏱️ Geral</button>
+      <button id="generalNormalize" onclick="normalizeAll()" data-tooltip="Normalizar velocidade de todos os vídeos">🔄 Geral</button>
+      <button id="generalStop" onclick="stopAll()" data-tooltip="Parar todos os vídeos">⬜ Stop</button>
+      <button onclick="removeAllVideos()" data-tooltip="Remover todos os vídeos">❌ Remover</button>
+      <button id="generalRecord" onclick="toggleRecording()" data-tooltip="Iniciar ou parar gravação">🔴 Gravar</button>
       <p style="text-align: center; font-size:20px; font-style: italic; font-family: 'Courier New', Courier, monospace; margin-top: 19px;">
         © 2025 Emanuel Aguiar <br>Todos os direitos reservados.
       </p>
@@ -378,7 +432,6 @@
         <p>Tamanho: ${formatFileSize(file.size)}</p>
         <p>Duração: <span id="duration${videoId}">00:00</span></p>
         <input type="text" id="rename${videoId}" placeholder="Renomear arquivo" value="${file.name}">
-        <button onclick="removeVideo(${videoId})">Remover Vídeo</button>
       `;
       localStorage.setItem("videoInfo" + videoId, JSON.stringify({ name: file.name, size: file.size }));
     }
@@ -393,7 +446,6 @@
           <p>Tamanho: ${formatFileSize(info.size)}</p>
           <p>Duração: <span id="duration${videoId}">00:00</span></p>
           <input type="text" id="rename${videoId}" placeholder="Renomear arquivo" value="${info.name}">
-          <button onclick="removeVideo(${videoId})">Remover Vídeo</button>
         `;
       }
     }
@@ -463,11 +515,48 @@
       }
     }
     
-    /* --- Normalizar individual --- */
+    /* --- Normalizar individual (playbackRate) --- */
     function normalizeVideo(id) {
       const video = document.getElementById('video' + id);
       if (video && video.src) {
         video.playbackRate = 1;
+      }
+    }
+    
+    /* --- Função para resetar o volume de todos os vídeos --- */
+    function resetVolumeAll() {
+      for (let i = 1; i <= 3; i++) {
+        const video = document.getElementById('video' + i);
+        const slider = document.getElementById('volume' + i);
+        const muteButton = document.getElementById('muteButton' + i);
+        if (video && slider) {
+          video.volume = 1;
+          slider.value = 1;
+          if (video.muted) {
+            video.muted = false;
+            if (muteButton) {
+              muteButton.textContent = "🔊";
+            }
+          }
+        }
+      }
+    }
+    
+    /* --- Função para alternar o mudo individual --- */
+    function toggleMuteVideo(id) {
+      const video = document.getElementById('video' + id);
+      const muteButton = document.getElementById('muteButton' + id);
+      const slider = document.getElementById('volume' + id);
+      if (video) {
+        video.muted = !video.muted;
+        if (video.muted) {
+          muteButton.textContent = "🔇";
+          slider.value = 0;
+        } else {
+          muteButton.textContent = "🔊";
+          video.volume = 1;
+          slider.value = 1;
+        }
       }
     }
     
@@ -534,7 +623,6 @@
         const percent = (video.currentTime / video.duration) * 100;
         progress.value = percent;
         timeDisplay.textContent = formatTime(video.currentTime) + " / " + formatTime(video.duration);
-        // Atualiza a duração na caixa de info se necessário
         const durationSpan = document.getElementById('duration' + id);
         if (durationSpan && durationSpan.textContent === "00:00") {
           durationSpan.textContent = formatTime(video.duration);
@@ -542,9 +630,12 @@
       }
     }
     function formatTime(seconds) {
-      const min = Math.floor(seconds / 60);
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
       const sec = Math.floor(seconds % 60);
-      return (min < 10 ? "0" + min : min) + ":" + (sec < 10 ? "0" + sec : sec);
+      return (hours < 10 ? "0" + hours : hours) + ":" +
+        (minutes < 10 ? "0" + minutes : minutes) + ":" +
+        (sec < 10 ? "0" + sec : sec);
     }
     function seekVideo(id) {
       const video = document.getElementById('video' + id);
@@ -567,7 +658,6 @@
         });
         loadFileInfo(i);
       }
-      // Configura os sliders de volume
       for (let i = 1; i <= 3; i++) {
         const slider = document.getElementById('volume' + i);
         slider.addEventListener('input', function () {
@@ -575,9 +665,14 @@
           video.volume = slider.value;
         });
       }
-      
-      // Inicia a composição contínua dos vídeos no canvas para gravação
       drawComposite();
+
+      /* --- Adiciona os eventos de tooltip a todos os botões que possuem data-tooltip --- */
+      const buttons = document.querySelectorAll('button[data-tooltip]');
+      buttons.forEach(function(btn) {
+        btn.addEventListener('mouseenter', showTooltip);
+        btn.addEventListener('mouseleave', hideTooltip);
+      });
     });
     
     /* --- Controles Gerais de Reprodução --- */
@@ -650,12 +745,10 @@
     const compositeCanvas = document.getElementById('recordCanvas');
     const compositeCtx = compositeCanvas.getContext('2d');
     
-    // Variáveis para controle da gravação
     let recording = false;
     let mediaRecorder;
     let recordedChunks = [];
     
-    // Função que compõe os 3 vídeos no canvas; assume 320x180 para cada vídeo
     function drawComposite() {
       if(video1.readyState >= 2) {
         compositeCtx.drawImage(video1, 0, 0, 320, 180);
@@ -669,21 +762,17 @@
       requestAnimationFrame(drawComposite);
     }
     
-    // Função para alternar o estado de gravação
     function toggleRecording() {
       const recordButton = document.getElementById('generalRecord');
       if (!recording) {
-        // Inicia a gravação
         recordedChunks = [];
-        const stream = compositeCanvas.captureStream(30); // 30 fps
-        
+        const stream = compositeCanvas.captureStream(30);
         let mimeType = '';
         if (MediaRecorder.isTypeSupported('video/mp4')) {
           mimeType = 'video/mp4';
         } else {
           mimeType = 'video/webm; codecs=vp9';
         }
-        
         try {
           mediaRecorder = new MediaRecorder(stream, { mimeType });
         } catch (e) {
@@ -691,49 +780,87 @@
           alert('Erro ao iniciar gravação');
           return;
         }
-        
         mediaRecorder.ondataavailable = function(event) {
           if (event.data.size > 0) {
             recordedChunks.push(event.data);
           }
         };
-        
         mediaRecorder.onstop = function() {
           const blob = new Blob(recordedChunks, { type: mimeType });
           const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.style.display = 'block';
-          a.href = url;
-          a.download = mimeType === 'video/mp4' ? 'gravacao.mp4' : 'gravacao.webm';
-          a.textContent = 'Download da gravação';
-          document.body.appendChild(a);
           stopTimer();
           document.getElementById("popupLeft").style.display = "none";
+          showSavePopup(url, mimeType);
         };
-        
         mediaRecorder.start();
         recordButton.textContent = 'Parar Gravação';
         recording = true;
-        // Exibe o popup esquerdo com a mensagem fixa e inicia o temporizador no popup direito
         const popupLeft = document.getElementById("popupLeft");
         popupLeft.textContent = "Gravação iniciada";
         popupLeft.style.display = "block";
         startTimer();
       } else {
-        // Para a gravação
         mediaRecorder.stop();
         recordButton.textContent = 'Gravar';
         recording = false;
       }
     }
     
-    /* --- Função para alternar o modo tela cheia para um vídeo individual --- */
+    function showSavePopup(url, mimeType) {
+      const popupSave = document.getElementById("popupSave");
+      popupSave.innerHTML = `
+        <p>Deseja salvar a gravação?</p>
+        <button id="saveYes" class="btn-green">Sim</button>
+        <button id="saveNo" class="btn-red">Não</button>
+      `;
+      popupSave.style.display = "block";
+      
+      document.getElementById("saveYes").addEventListener("click", function(){
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = mimeType === 'video/mp4' ? 'gravacao.mp4' : 'gravacao.webm';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        popupSave.style.display = "none";
+      });
+      
+      document.getElementById("saveNo").addEventListener("click", function(){
+        popupSave.style.display = "none";
+        URL.revokeObjectURL(url);
+      });
+    }
+    
     function toggleFullScreen(videoId) {
       const video = document.getElementById('video' + videoId);
       if (!document.fullscreenElement) {
         video.requestFullscreen();
       } else {
         document.exitFullscreen();
+      }
+    }
+    
+    /* --- Tooltip: exibe a dica após 5 segundos de mouse parado --- */
+    let tooltipTimeout;
+    function showTooltip(event) {
+      const button = event.currentTarget;
+      tooltipTimeout = setTimeout(() => {
+        let tooltip = document.createElement('div');
+        tooltip.className = 'tooltip';
+        tooltip.innerHTML = button.getAttribute('data-tooltip');
+        document.body.appendChild(tooltip);
+        const rect = button.getBoundingClientRect();
+        tooltip.style.top = (rect.top + window.scrollY - tooltip.offsetHeight - 5) + 'px';
+        tooltip.style.left = (rect.left + window.scrollX + (button.offsetWidth - tooltip.offsetWidth) / 2) + 'px';
+        button._tooltip = tooltip;
+      }, 500);
+    }
+    function hideTooltip(event) {
+      clearTimeout(tooltipTimeout);
+      const button = event.currentTarget;
+      if (button._tooltip) {
+        document.body.removeChild(button._tooltip);
+        button._tooltip = null;
       }
     }
   </script>
