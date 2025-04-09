@@ -7,11 +7,11 @@
   <style>
     /* Variáveis para ajuste manual */
     :root {
-      --btn-gap: 10px;             /* Espaçamento entre os botões */
-      --btn-padding: 10px;         /* Padding interno dos botões */
-      --btn-margin: 5px;           /* Margem externa dos botões */
-      --container-padding: 10px;   /* Padding do contêiner dos botões */
-      --container-border: 1px solid #333; /* Borda do contêiner */
+      --btn-gap: 10px;
+      --btn-padding: 10px;
+      --btn-margin: 5px;
+      --container-padding: 10px;
+      --container-border: 1px solid #333;
     }
     
     /* Evita rolagem horizontal e define margens gerais */
@@ -40,12 +40,10 @@
     .header-container {
       position: relative;
     }
-    /* Popup esquerdo – mensagem fixa "Gravação iniciada" */
-    #popupLeft {
+    /* Popups de gravação e outros */
+    #popupLeft, #popupRight, #popupSave {
       display: none;
       position: fixed;
-      top: 15px;
-      left: 10px;
       padding: 25px;
       background-color: rgba(0, 0, 0, 0.8);
       color: white;
@@ -57,38 +55,12 @@
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
       text-align: center;
     }
-    /* Popup direito – temporizador digital */
-    #popupRight {
-      display: none;
-      position: fixed;
-      top: 15px;
-      right: 10px;
-      padding: 25px;
-      background-color: rgba(0, 0, 0, 0.8);
-      color: white;
-      font-size: 20px;
-      font-family: "Courier New", Courier, monospace;
-      font-style: italic;
-      border-radius: 32px;
-      z-index: 1000;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-      text-align: center;
-    }
-    /* Popup de confirmação para salvar a gravação */
+    #popupLeft { top: 15px; left: 10px; }
+    #popupRight { top: 15px; right: 10px; }
     #popupSave {
-      display: none;
-      position: fixed;
       top: 15px;
       left: 50%;
       transform: translateX(-50%);
-      padding: 20px;
-      background-color: rgba(0, 0, 0, 0.8);
-      color: white;
-      font-size: 20px;
-      font-family: "Courier New", Courier, monospace;
-      border-radius: 32px;
-      z-index: 1000;
-      text-align: center;
     }
     /* Botões de confirmação */
     .btn-green {
@@ -151,7 +123,7 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
-      object-position: center; /* Garante que o vídeo fique centralizado, se houver barras */
+      object-position: center;
     }
     .progress-container {
       width: 80%;
@@ -189,7 +161,7 @@
       padding: 4px 8px;
       font-size: 12px;
     }
-    /* CONTROLES INDIVIDUAIS – cada bloco fica logo abaixo do vídeo */
+    /* CONTROLES INDIVIDUAIS */
     .video-controls {
       width: 95%;
       max-width: 640px;
@@ -199,6 +171,7 @@
       background-color: #fff;
       margin-top: 5px;
       text-align: center;
+      box-shadow: 7px 6px 5px rgba(0,0,0,0.3);
     }
     .controls-container.single-row {
       display: flex;
@@ -228,7 +201,7 @@
     button:active {
       transform: scale(0.98);
     }
-    /* CONTROLES GERAIS – para todos os vídeos, alinhados em duas linhas */
+    /* CONTROLES GERAIS */
     .section {
       text-align: center;
       border: 3px solid #333;
@@ -254,11 +227,11 @@
       margin: var(--btn-margin);
       padding: var(--btn-padding);
     }
-    /* Canvas usado para compor os vídeos – oculto */
+    /* Canvas para gravação */
     #recordCanvas {
       display: none;
     }
-    /* Estilo para a dica (tooltip) */
+    /* Tooltip */
     .tooltip {
       position: absolute;
       background-color: black;
@@ -271,13 +244,39 @@
       z-index: 999;
       box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
     }
+    /* Popup para Avançar o Tempo (novos inputs) */
+    #jumpPopup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #fff;
+      padding: 20px;
+      border: 2px solid #333;
+      border-radius: 47px;
+      z-index: 2000;
+      text-align: center;
+      box-shadow: 7px 6px 5px rgba(0,0,0,0.3);
+    }
+    #jumpPopup input {
+      font-size: 18px;
+      padding: 5px;
+      text-align: center;
+      width: 60px;
+      margin: 0 2px;
+    }
+    #jumpPopup button {
+      font-size: 16px;
+      padding: 5px 20px;
+      margin: 10px 5px 0;
+    }
   </style>
 </head>
 <body>
   <!-- Popups para gravação -->
   <div id="popupLeft"></div>
   <div id="popupRight"></div>
-  <!-- Popup de confirmação para salvar a gravação -->
   <div id="popupSave"></div>
   
   <!-- CABEÇALHO -->
@@ -316,6 +315,7 @@
           <button onclick="slowMotion(1)" data-tooltip="Câmera lenta para vídeo 1">⏱️</button>
           <button onclick="toggleFullScreen(1)" data-tooltip="Tela cheia para vídeo 1">🖥️ Tela Cheia</button>
           <button onclick="removeVideo(1)" data-tooltip="Remover vídeo 1">✖️ Remover Vídeo</button>
+          <button onclick="rotateVideo(1)" data-tooltip="Girar vídeo 1">🔃</button>
         </div>
       </div>
     </div>
@@ -348,6 +348,7 @@
           <button onclick="slowMotion(2)" data-tooltip="Câmera lenta para vídeo 2">⏱️</button>
           <button onclick="toggleFullScreen(2)" data-tooltip="Tela cheia para vídeo 2">🖥️ Tela Cheia</button>
           <button onclick="removeVideo(2)" data-tooltip="Remover vídeo 2">✖️ Remover Vídeo</button>
+          <button onclick="rotateVideo(2)" data-tooltip="Girar vídeo 2">🔃</button>
         </div>
       </div>
     </div>
@@ -380,6 +381,7 @@
           <button onclick="slowMotion(3)" data-tooltip="Câmera lenta para vídeo 3">⏱️</button>
           <button onclick="toggleFullScreen(3)" data-tooltip="Tela cheia para vídeo 3">🖥️ Tela Cheia</button>
           <button onclick="removeVideo(3)" data-tooltip="Remover vídeo 3">✖️ Remover Vídeo</button>
+          <button onclick="rotateVideo(3)" data-tooltip="Girar vídeo 3">🔃</button>
         </div>
       </div>
     </div>
@@ -387,6 +389,18 @@
   
   <!-- CONTROLE GERAL DOS VÍDEOS -->
   <div class="section">
+    <!-- Popup para avançar os vídeos com três inputs separados -->
+    <div id="jumpPopup">
+      <p>Digite o tempo:</p>
+      <input type="number" id="jumpTimeHours" placeholder="HH" min="0" max="99">
+      :
+      <input type="number" id="jumpTimeMinutes" placeholder="MM" min="0" max="59">
+      :
+      <input type="number" id="jumpTimeSeconds" placeholder="SS" min="0" max="59">
+      <br><br>
+      <button onclick="applyJumpTime()">Avançar</button>
+      <button onclick="closeJumpPopup()">Cancelar</button>
+    </div>
     <div class="general-controls">
       <button id="generalMark" onclick="markPositionAll()" data-tooltip="Marcar posição atual em todos os vídeos">🅰️ Marcar</button>
       <button id="generalJump" onclick="jumpToMarkerAll()" data-tooltip="Voltar à posição marcada em todos os vídeos">🅱️ Voltar</button>
@@ -402,9 +416,9 @@
       <button onclick="removeAllVideos()" data-tooltip="Remover todos os vídeos">❌ Remover</button>
       <button id="generalRecord" onclick="toggleRecording()" data-tooltip="Iniciar ou parar gravação">🔴 Gravar</button>
       <button id="globalToggleTimeButton" class="toggle-time-button" onclick="toggleGlobalTimeDisplay()">
-  🆔 Ocultar Tempos
-</button>
-      
+        🆔 Ocultar Tempos
+      </button>
+      <button onclick="openJumpPopup()" data-tooltip="Avançar todos os vídeos para um tempo determinado">⏳ Avançar para Tempo</button>
       <p style="text-align: center; font-size:20px; font-style: italic; font-family: 'Courier New', Courier, monospace; margin-top: 19px;">
         © 2025 Emanuel Aguiar <br>Todos os direitos reservados.
       </p>
@@ -415,7 +429,17 @@
   <canvas id="recordCanvas" width="960" height="180"></canvas>
   
   <script>
-    /* --- Função para formatar tamanho de arquivo --- */
+    // Objeto para guardar os ângulos de rotação de cada vídeo
+    let videoRotations = {};
+    function rotateVideo(id) {
+      const video = document.getElementById('video' + id);
+      if (videoRotations[id] === undefined) {
+        videoRotations[id] = 0;
+      }
+      videoRotations[id] = (videoRotations[id] + 90) % 360;
+      video.style.transform = `rotate(${videoRotations[id]}deg)`;
+    }
+    
     function formatFileSize(bytes) {
       if (bytes >= 1073741824) {
         return (bytes / 1073741824).toFixed(2) + " GB";
@@ -429,26 +453,16 @@
     }
     
     function toggleGlobalTimeDisplay() {
-      // Seleciona todos os elementos de tempo
       const timeDisplays = document.querySelectorAll('.time-display');
       const toggleButton = document.getElementById("globalToggleTimeButton");
-
-      // Checa o estado de exibição do primeiro elemento (assumindo que todos estão iguais)
       const isCurrentlyVisible = window.getComputedStyle(timeDisplays[0]).display !== "none";
-
-      // Define o novo estado: se estiver visível, vamos ocultar; caso contrário, vamos mostrar
       const newDisplayValue = isCurrentlyVisible ? "none" : "block";
-
-      // Atualiza o display de todos os elementos com a classe "time-display"
       timeDisplays.forEach(function(element) {
         element.style.display = newDisplayValue;
       });
-
-      // Atualiza o texto do botão de acordo com o novo estado
       toggleButton.textContent = isCurrentlyVisible ? "Mostrar Tempos" : "Ocultar Tempos";
     }
     
-    /* --- Função para atualizar a caixa de informações do arquivo --- */
     function updateFileInfo(videoId, file) {
       const infoDiv = document.getElementById("info" + videoId);
       infoDiv.innerHTML = `
@@ -474,7 +488,6 @@
       }
     }
     
-    /* --- Funções de Drag & Drop para carregar vídeo --- */
     function allowDrop(event) {
       event.preventDefault();
     }
@@ -494,7 +507,6 @@
       }
     }
     
-    /* --- Funções de reprodução individual --- */
     function playVideo(id) {
       const video = document.getElementById('video' + id);
       if (video.src) video.play();
@@ -512,7 +524,6 @@
       }
     }
     
-    /* --- Fast‑Forward: aumenta playbackRate em 0.5 --- */
     function fastForward(id) {
       const video = document.getElementById('video' + id);
       if (video && video.src) {
@@ -522,7 +533,6 @@
       }
     }
     
-    /* --- Rewind: subtrai 1.5 s a cada clique --- */
     function rewind(id) {
       const video = document.getElementById('video' + id);
       if (video && video.src) {
@@ -530,7 +540,6 @@
       }
     }
     
-    /* --- Câmera lenta individual --- */
     function slowMotion(id) {
       const video = document.getElementById('video' + id);
       if (video && video.src) {
@@ -539,7 +548,6 @@
       }
     }
     
-    /* --- Normalizar individual (playbackRate) --- */
     function normalizeVideo(id) {
       const video = document.getElementById('video' + id);
       if (video && video.src) {
@@ -547,7 +555,6 @@
       }
     }
     
-    /* --- Função para resetar o volume de todos os vídeos --- */
     function resetVolumeAll() {
       for (let i = 1; i <= 3; i++) {
         const video = document.getElementById('video' + i);
@@ -566,7 +573,6 @@
       }
     }
     
-    /* --- Função para alternar o mudo individual --- */
     function toggleMuteVideo(id) {
       const video = document.getElementById('video' + id);
       const muteButton = document.getElementById('muteButton' + id);
@@ -584,7 +590,6 @@
       }
     }
     
-    /* --- Controles Gerais: aplica para todos os vídeos --- */
     function fastForwardAll() {
       for (let i = 1; i <= 3; i++) {
         fastForward(i);
@@ -614,7 +619,6 @@
       }
     }
     
-    /* --- Controles Gerais de Marcação de Posição --- */
     let markerTimes = {};
     function markPositionAll() {
       for (let i = 1; i <= 3; i++) {
@@ -638,7 +642,6 @@
       console.log("Marcação resetada");
     }
     
-    /* --- Atualização do slider de progresso e exibição do tempo --- */
     function updateProgress(id) {
       const video = document.getElementById('video' + id);
       const progress = document.getElementById('progress' + id);
@@ -658,8 +661,8 @@
       const minutes = Math.floor((seconds % 3600) / 60);
       const sec = Math.floor(seconds % 60);
       return (hours < 10 ? "0" + hours : hours) + ":" +
-        (minutes < 10 ? "0" + minutes : minutes) + ":" +
-        (sec < 10 ? "0" + sec : sec);
+             (minutes < 10 ? "0" + minutes : minutes) + ":" +
+             (sec < 10 ? "0" + sec : sec);
     }
     function seekVideo(id) {
       const video = document.getElementById('video' + id);
@@ -669,7 +672,6 @@
       }
     }
     
-    /* --- Eventos para cada vídeo --- */
     document.addEventListener('DOMContentLoaded', function () {
       for (let i = 1; i <= 3; i++) {
         const video = document.getElementById('video' + i);
@@ -690,8 +692,6 @@
         });
       }
       drawComposite();
-
-      /* --- Adiciona os eventos de tooltip a todos os botões que possuem data-tooltip --- */
       const buttons = document.querySelectorAll('button[data-tooltip]');
       buttons.forEach(function(btn) {
         btn.addEventListener('mouseenter', showTooltip);
@@ -699,7 +699,6 @@
       });
     });
     
-    /* --- Controles Gerais de Reprodução --- */
     function playAll() {
       for (let i = 1; i <= 3; i++) {
         const video = document.getElementById('video' + i);
@@ -718,7 +717,6 @@
       }
     }
     
-    /* --- Função para remover individualmente um vídeo --- */
     function removeVideo(id) {
       const video = document.getElementById('video' + id);
       if (video) {
@@ -735,10 +733,8 @@
       localStorage.removeItem("videoInfo" + id);
     }
     
-    /* --- Variáveis e funções para o temporizador dos popups --- */
     let recordingStartTime = null;
     let timerInterval = null;
-    
     function startTimer() {
       recordingStartTime = Date.now();
       timerInterval = setInterval(() => {
@@ -755,24 +751,20 @@
         popupRight.style.display = "block";
       }, 1000);
     }
-    
     function stopTimer() {
       clearInterval(timerInterval);
       timerInterval = null;
       document.getElementById("popupRight").style.display = "none";
     }
     
-    /* --- Gravação da tela composta dos 3 vídeos --- */
     const video1 = document.getElementById('video1');
     const video2 = document.getElementById('video2');
     const video3 = document.getElementById('video3');
     const compositeCanvas = document.getElementById('recordCanvas');
     const compositeCtx = compositeCanvas.getContext('2d');
-    
     let recording = false;
     let mediaRecorder;
     let recordedChunks = [];
-    
     function drawComposite() {
       if(video1.readyState >= 2) {
         compositeCtx.drawImage(video1, 0, 0, 320, 180);
@@ -864,7 +856,6 @@
       }
     }
     
-    /* --- Tooltip: exibe a dica após 5 segundos de mouse parado --- */
     let tooltipTimeout;
     function showTooltip(event) {
       const button = event.currentTarget;
@@ -886,6 +877,41 @@
         document.body.removeChild(button._tooltip);
         button._tooltip = null;
       }
+    }
+    
+    // Funções para o popup de avanço de tempo com três inputs separados
+    function openJumpPopup() {
+      document.getElementById("jumpPopup").style.display = "block";
+      document.getElementById("jumpTimeHours").value = "";
+      document.getElementById("jumpTimeMinutes").value = "";
+      document.getElementById("jumpTimeSeconds").value = "";
+    }
+    function closeJumpPopup() {
+      document.getElementById("jumpPopup").style.display = "none";
+    }
+    function applyJumpTime() {
+      let h = document.getElementById("jumpTimeHours").value;
+      let m = document.getElementById("jumpTimeMinutes").value;
+      let s = document.getElementById("jumpTimeSeconds").value;
+      h = h.trim() ? parseInt(h, 10) : 0;
+      m = m.trim() ? parseInt(m, 10) : 0;
+      s = s.trim() ? parseInt(s, 10) : 0;
+      if (m >= 60 || s >= 60) {
+        alert("Minutos e segundos devem ser menores que 60.");
+        return;
+      }
+      const totalSeconds = h * 3600 + m * 60 + s;
+      for (let i = 1; i <= 3; i++) {
+        const video = document.getElementById('video' + i);
+        if (video && video.src) {
+          if (video.duration && totalSeconds > video.duration) {
+            video.currentTime = video.duration;
+          } else {
+            video.currentTime = totalSeconds;
+          }
+        }
+      }
+      closeJumpPopup();
     }
   </script>
 </body>
