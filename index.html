@@ -401,6 +401,10 @@
       <button id="generalStop" onclick="stopAll()" data-tooltip="Parar todos os vídeos">⬜ Stop</button>
       <button onclick="removeAllVideos()" data-tooltip="Remover todos os vídeos">❌ Remover</button>
       <button id="generalRecord" onclick="toggleRecording()" data-tooltip="Iniciar ou parar gravação">🔴 Gravar</button>
+      <button id="globalToggleTimeButton" class="toggle-time-button" onclick="toggleGlobalTimeDisplay()">
+  🆔 Ocultar Tempos
+</button>
+      
       <p style="text-align: center; font-size:20px; font-style: italic; font-family: 'Courier New', Courier, monospace; margin-top: 19px;">
         © 2025 Emanuel Aguiar <br>Todos os direitos reservados.
       </p>
@@ -422,6 +426,26 @@
       } else {
         return bytes + " bytes";
       }
+    }
+    
+    function toggleGlobalTimeDisplay() {
+      // Seleciona todos os elementos de tempo
+      const timeDisplays = document.querySelectorAll('.time-display');
+      const toggleButton = document.getElementById("globalToggleTimeButton");
+
+      // Checa o estado de exibição do primeiro elemento (assumindo que todos estão iguais)
+      const isCurrentlyVisible = window.getComputedStyle(timeDisplays[0]).display !== "none";
+
+      // Define o novo estado: se estiver visível, vamos ocultar; caso contrário, vamos mostrar
+      const newDisplayValue = isCurrentlyVisible ? "none" : "block";
+
+      // Atualiza o display de todos os elementos com a classe "time-display"
+      timeDisplays.forEach(function(element) {
+        element.style.display = newDisplayValue;
+      });
+
+      // Atualiza o texto do botão de acordo com o novo estado
+      toggleButton.textContent = isCurrentlyVisible ? "Mostrar Tempos" : "Ocultar Tempos";
     }
     
     /* --- Função para atualizar a caixa de informações do arquivo --- */
