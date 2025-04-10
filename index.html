@@ -14,11 +14,12 @@
       --container-border: 1px solid #333;
     }
     
-    /* Evita rolagem horizontal e define margens gerais */
+    /* Evita rolagem horizontal, atualiza margens e impede pull-to-refresh em mobile */
     html, body {
       overflow-x: hidden;
       margin: 3px 0px 15px 0px;
       padding: 0;
+      overscroll-behavior-y: none;
     }
     /* ESTILOS GERAIS */
     body {
@@ -134,7 +135,7 @@
     }
     .time-display {
       text-align: center;
-      font-size: 37px;
+      font-size: 30px;
       font-family: "monospace";
       margin-top: -3px;
       margin-bottom: -2px;
@@ -271,9 +272,51 @@
       padding: 5px 20px;
       margin: 10px 5px 0;
     }
+    /* Global Clock */
+    #global-clock {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      font-size: 24px;
+      background-color: #000;
+      color: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      z-index: 1001;
+      display: none;
+    }
   </style>
 </head>
 <body>
+  <button id="btnFullScreen" style="position: absolute; top: 10px; right: 1500px; z-index: 2000; padding: 8px 12px; font-size: 16px; cursor: pointer;">Alternar Tela Cheia</button>
+
+  
+  <!-- Global Clock -->
+  <div id="global-clock"></div>
+
+  <!-- Popup de Atualização -->
+  <div id="update-popup" style="display: block; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; background-color: rgba(0,0,0,0.8); color: white; font-size: 15px; border-radius: 5px; z-index: 1100; box-shadow: 0 0 10px rgba(0,0,0,0.5); text-align: left;">
+    <p>⚠️ NOTAS DE ATUALIZAÇÃO!!!<br><br>
+       1️⃣ Controle individual e geral dos vídeos aprimorados.<br>
+       2️⃣ Botão para alternar ou esconder a exibição do tempo de reprodução.<br>
+       3️⃣ Tooltips (dicas) ativadas ao passar o mouse sobre os botões.<br>
+       4️⃣ Opção para pular para um tempo específico (hh:mm) adicionada.<br>
+       5️⃣ Função de rotação de vídeo em 360° implementada.<br>
+       6️⃣ Relógio da sessão reposicionado para a parte inferior.<br>
+       7️⃣ Atualização segura que desativa o pull-to-refresh em mobile.<br>
+    </p>
+    <button onclick="document.getElementById('update-popup').style.display='none';" style="font-size: 15px; padding: 7px 125px; border-radius: 14px; background-color: #fff; color: black; border: none; cursor: pointer; display: block; margin: 0 auto;">
+      Fechar
+    </button>
+  </div>
+
+  <!-- Popup de Análise de Vídeo -->
+  <div id="analysis-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; background-color: rgba(0,0,0,0.8); color: white; font-size: 15px; border-radius: 5px; z-index: 1100; box-shadow: 0 0 10px rgba(0,0,0,0.5); text-align: center;">
+    <p>Deseja iniciar análise de vídeo?</p>
+    <button onclick="startAnalysis();" style="font-size: 15px; padding: 7px 125px; border-radius: 14px; background-color: #fff; color: black; border: none; cursor: pointer; display: block; margin: 10px auto 5px auto;">Sim</button>
+    <button onclick="document.getElementById('analysis-popup').style.display='none';" style="font-size: 15px; padding: 7px 125px; border-radius: 14px; background-color: #fff; color: black; border: none; cursor: pointer; display: block; margin: 5px auto;">Não</button>
+  </div>
+
   <!-- Popups para gravação -->
   <div id="popupLeft"></div>
   <div id="popupRight"></div>
@@ -282,7 +325,7 @@
   <!-- CABEÇALHO -->
   <div class="header-container">
     <h2 style="color:#e63946;">MODELO COMPARAÇÃO DE VIDEOMONITORAMENTOS</h2>
-    <h2 style="font-size:21px; font-weight:bold; color:#000;">(Versão 1.0)</h2>
+    <h2 style="font-size:21px; font-weight:bold; color:#000;">(Versão 3.0)</h2>
   </div>
   
   <!-- CONTAINER DOS VÍDEOS -->
@@ -315,7 +358,7 @@
           <button onclick="slowMotion(1)" data-tooltip="Câmera lenta para vídeo 1">⏱️</button>
           <button onclick="toggleFullScreen(1)" data-tooltip="Tela cheia para vídeo 1">🖥️ Tela Cheia</button>
           <button onclick="removeVideo(1)" data-tooltip="Remover vídeo 1">✖️ Remover Vídeo</button>
-          <button onclick="rotateVideo(1)" data-tooltip="Girar vídeo 1">🔃</button>
+          <button onclick="rotateVideo(1)" data-tooltip="Girar vídeo 1">↪️</button>
         </div>
       </div>
     </div>
@@ -348,8 +391,8 @@
           <button onclick="slowMotion(2)" data-tooltip="Câmera lenta para vídeo 2">⏱️</button>
           <button onclick="toggleFullScreen(2)" data-tooltip="Tela cheia para vídeo 2">🖥️ Tela Cheia</button>
           <button onclick="removeVideo(2)" data-tooltip="Remover vídeo 2">✖️ Remover Vídeo</button>
-          <button onclick="rotateVideo(2)" data-tooltip="Girar vídeo 2">🔃</button>
-        </div>
+          <button onclick="rotateVideo(2)" data-tooltip="Girar vídeo 2">↪️</button>
+          </div>
       </div>
     </div>
     
@@ -381,7 +424,7 @@
           <button onclick="slowMotion(3)" data-tooltip="Câmera lenta para vídeo 3">⏱️</button>
           <button onclick="toggleFullScreen(3)" data-tooltip="Tela cheia para vídeo 3">🖥️ Tela Cheia</button>
           <button onclick="removeVideo(3)" data-tooltip="Remover vídeo 3">✖️ Remover Vídeo</button>
-          <button onclick="rotateVideo(3)" data-tooltip="Girar vídeo 3">🔃</button>
+          <button onclick="rotateVideo(3)" data-tooltip="Girar vídeo 3">↪️</button>
         </div>
       </div>
     </div>
@@ -419,6 +462,8 @@
         🆔 Ocultar Tempos
       </button>
       <button onclick="openJumpPopup()" data-tooltip="Avançar todos os vídeos para um tempo determinado">⏳ Avançar para Tempo</button>
+      <!-- Botão opcional para reiniciar a página -->
+      <button onclick="location.reload();" data-tooltip="Reiniciar a página opcionalmente">⚠️ Reiniciar Página</button>
       <p style="text-align: center; font-size:20px; font-style: italic; font-family: 'Courier New', Courier, monospace; margin-top: 19px;">
         © 2025 Emanuel Aguiar <br>Todos os direitos reservados.
       </p>
@@ -429,7 +474,29 @@
   <canvas id="recordCanvas" width="960" height="180"></canvas>
   
   <script>
-    // Objeto para guardar os ângulos de rotação de cada vídeo
+    
+    // Variáveis e funções para o relógio de análise
+    let analysisStartTime = null;
+    let analysisTimer = null;
+    function startAnalysis() {
+      document.getElementById('analysis-popup').style.display = 'none';
+      // Inicia o relógio de análise
+      analysisStartTime = Date.now();
+      document.getElementById("global-clock").style.display = "block";
+      analysisTimer = setInterval(function() {
+        let elapsedSec = Math.floor((Date.now() - analysisStartTime) / 1000);
+        document.getElementById("global-clock").textContent = formatTime(elapsedSec);
+      }, 1000);
+      // Aqui você pode adicionar funcionalidades adicionais para habilitar a análise
+    }
+    
+    // Função chamada ao fechar o popup de atualização
+    function closeUpdatePopup() {
+      document.getElementById('update-popup').style.display = 'none';
+      document.getElementById('analysis-popup').style.display = 'block';
+    }
+    
+    // Funções e variáveis já existentes do código para controle dos vídeos
     let videoRotations = {};
     function rotateVideo(id) {
       const video = document.getElementById('video' + id);
@@ -717,7 +784,7 @@
       }
     }
     
-    function removeVideo(id) {
+       function removeVideo(id) {
       const video = document.getElementById('video' + id);
       if (video) {
         video.src = "";
@@ -728,11 +795,10 @@
         <p>Arquivo: Nenhum</p>
         <p>Tamanho: 0</p>
         <input type="text" id="rename${id}" placeholder="Renomear arquivo">
-        <button onclick="removeVideo(${id})">Remover Vídeo</button>
       `;
       localStorage.removeItem("videoInfo" + id);
     }
-    
+
     let recordingStartTime = null;
     let timerInterval = null;
     function startTimer() {
@@ -913,6 +979,21 @@
       }
       closeJumpPopup();
     }
+    document.getElementById('btnFullScreen').addEventListener('click', toggleFullScreen);
+
+    function toggleFullScreen() {
+      // Verifica se há um elemento em tela cheia
+      if (!document.fullscreenElement) {
+        // Pede para o elemento raiz entrar em tela cheia
+        document.documentElement.requestFullscreen().catch(err => {
+          alert(`Erro ao tentar entrar em tela cheia: ${err.message} (${err.name})`);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+  }
   </script>
 </body>
 </html>
